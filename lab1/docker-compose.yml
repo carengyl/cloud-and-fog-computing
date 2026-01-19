@@ -9,6 +9,7 @@ services:
       - app-net
 
   frontend:
+    image: lab1-frontend:latest
     build: ./frontend
     ports:
       - "5000:5000"
@@ -19,4 +20,4 @@ services:
 
 networks:
   app-net:
-    driver: bridge
+    driver: overlay
