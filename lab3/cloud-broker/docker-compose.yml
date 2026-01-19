@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"    # MQTT
+      - "9001:9001"    # Websockets
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+    networks:
+      - factory-net
+
+  dashboard:
+    image: python:3.11-slim
+    working_dir: /app
+    volumes:
+      - ./dashboard.py:/app/dashboard.py
+    command: >
+      sh -c "pip install paho-mqtt && python dashboard.py"
+    environment:
+      - MQTT_BROKER=mosquitto
+      - MQTT_TOPIC_ALERTS=factory/alerts/high_temperature
+    networks:
+      - factory-net
+    depends_on:
+      - mosquitto
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+
+networks:
+  factory-net:
+    driver: bridge

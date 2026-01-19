@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # 1. Cloud MQTT Broker (Mosquitto)
+  cloud-broker:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./cloud-broker/mosquitto.conf:/mosquitto/config/mosquitto.conf
+    networks:
+      factory-net:
+        aliases:
+          - mosquitto
+
+  # 2. Edge Device (Датчик температуры)
+  edge-sensor:
+    build: ./edge-sensor
+    environment:
+      - MQTT_BROKER=cloud-broker
+      - SENSOR_ID=sensor-01
+    networks:
+      - factory-net
+    depends_on:
+      - cloud-broker
+    deploy:
+      replicas: 2  # Два датчика для наглядности
+
+  # 3. Fog Node (Шлюз Node-RED)
+  fog-gateway:
+    build: ./fog-gateway
+    ports:
+      - "1880:1880"  # Node-RED редактор
+    environment:
+      - NODE_RED_ENABLE_PROJECTS=false
+    volumes:
+      - node-red-data:/data
+    networks:
+      - factory-net
+    depends_on:
+      - cloud-broker
+
+  # 4. Cloud Dashboard
+  cloud-dashboard:
+    build:
+      context: .
+      dockerfile: ./cloud-broker/Dockerfile.dashboard
+    environment:
+      - MQTT_BROKER=cloud-broker
+    networks:
+      - factory-net
+    depends_on:
+      - cloud-broker
+
+volumes:
+  node-red-data:
+
+networks:
+  factory-net:
+    driver: bridge
+    name: factory-net
