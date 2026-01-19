@@ -1,55 +1,99 @@
 [
     {
         "id": "fog-gateway-flow",
+        "type": "tab",
         "label": "Шлюз умной фабрики",
-        "nodes": [
-            {
-                "id": "mqtt-in",
-                "type": "mqtt in",
-                "name": "Подписка на датчики",
-                "topic": "factory/sensor/temperature",
-                "qos": "1",
-                "broker": "cloud-broker",
-                "x": 100,
-                "y": 100
-            },
-            {
-                "id": "function-filter",
-                "type": "function",
-                "name": "Фильтр температуры > 80°C",
-                "func": "// Получаем температуру из сообщения\nvar temp = msg.payload.temperature;\nvar sensor = msg.payload.sensor_id;\n\n// Логируем все события\nnode.log('Датчик ' + sensor + ': ' + temp.toFixed(1) + '°C');\n\n// Если температура выше 80°C - передаем дальше в облако\nif (temp > 80) {\n    node.warn('⚠️ ВНИМАНИЕ! Датчик ' + sensor + ': ' + temp.toFixed(1) + '°C');\n    msg.topic = 'factory/alerts/high_temperature';\n    return msg;\n}\n\n// Иначе - отбрасываем (фильтрация на краю)\nreturn null;",
-                "x": 300,
-                "y": 100
-            },
-            {
-                "id": "mqtt-out",
-                "type": "mqtt out",
-                "name": "Отправка алертов в облако",
-                "topic": "factory/alerts/high_temperature",
-                "qos": "1",
-                "broker": "cloud-broker",
-                "x": 500,
-                "y": 100
-            },
-            {
-                "id": "debug-local",
-                "type": "debug",
-                "name": "Локальный лог (все сообщения)",
-                "active": true,
-                "console": "true",
-                "x": 300,
-                "y": 200
-            },
-            {
-                "id": "cloud-broker",
-                "type": "mqtt-broker",
-                "name": "Cloud MQTT Broker",
-                "broker": "cloud-broker",
-                "port": "1883",
-                "clientid": "fog-node-01",
-                "usetls": false,
-                "compatmode": true
-            }
-        ]
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "mqtt-in",
+        "type": "mqtt in",
+        "z": "fog-gateway-flow",
+        "name": "Подписка на датчики",
+        "topic": "factory/sensor/temperature",
+        "qos": "1",
+        "broker": "cloud-broker-config",
+        "x": 100,
+        "y": 100,
+        "wires": [["function-filter"]]
+    },
+    {
+        "id": "function-filter",
+        "type": "function",
+        "z": "fog-gateway-flow",
+        "name": "Фильтр температуры > 80°C",
+        "func": "// Получаем температуру из сообщения\nvar temp = msg.payload.temperature;\nvar sensor = msg.payload.sensor_id;\n\n// Логируем все события\nnode.log('Датчик ' + sensor + ': ' + temp.toFixed(1) + '°C');\n\n// Если температура выше 80°C - передаем дальше в облако\nif (temp > 80) {\n    node.warn('⚠️ ВНИМАНИЕ! Датчик ' + sensor + ': ' + temp.toFixed(1) + '°C');\n    msg.topic = 'factory/alerts/high_temperature';\n    return msg;\n}\n\n// Иначе - отбрасываем (фильтрация на краю)\nreturn null;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 300,
+        "y": 100,
+        "wires": [["mqtt-out", "debug-local"]]
+    },
+    {
+        "id": "mqtt-out",
+        "type": "mqtt out",
+        "z": "fog-gateway-flow",
+        "name": "Отправка алертов в облако",
+        "topic": "factory/alerts/high_temperature",
+        "qos": "1",
+        "retain": false,
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "cloud-broker-config",
+        "x": 500,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "debug-local",
+        "type": "debug",
+        "z": "fog-gateway-flow",
+        "name": "Локальный лог (все сообщения)",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 300,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "cloud-broker-config",
+        "type": "mqtt-broker",
+        "name": "Cloud MQTT Broker",
+        "broker": "cloud-broker",
+        "port": "1883",
+        "clientid": "fog-node-01",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": 4,
+        "keepalive": 60,
+        "cleansession": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
     }
 ]
