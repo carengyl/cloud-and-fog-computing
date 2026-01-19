@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+spec:
+  type: NodePort  # Для доступа извне в Minikube
+  selector:
+    app: frontend
+  ports:
+  - port: 5000
+    targetPort: 5000
+    nodePort: 30001  # Фиксированный порт на ноде (30000-32767)
